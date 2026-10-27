@@ -17,7 +17,7 @@
 **SafeHire AI** is an advanced cyber-safety platform designed to protect students and fresh graduates from fraudulent internship postings and employment scams. The platform accepts URLs from popular recruitment platforms (**Internshala, LinkedIn, Indeed, Foundit, Wellfound**, and direct career pages) or raw job descriptions.
 
 It extracts key posting metadata—such as **posting date, day of week, salary/stipend, company name, location, and communication handles**—and conducts deep risk analysis using an ensemble Machine Learning model coupled with a deterministic heuristic red-flag rule engine.
- Live app: [https://fake-internship-job-scam-detection-esy4sp7p6g3fmvplbva74k.streamlit.app/]
+   Live app: [https://fake-internship-job-scam-detection-esy4sp7p6g3fmvplbva74k.streamlit.app/]
 
 ---
 
