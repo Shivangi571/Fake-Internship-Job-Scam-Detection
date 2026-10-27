@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+
+{% block title %}SafeHire AI | Fake Internship & Job Scam Detection System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-scanner text-center">
+  <div class="container py-4">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-3 rounded-pill bg-white border shadow-sm text-primary small fw-semibold">
+      <i class="fa-solid fa-shield-cat"></i> AI-Powered Trust & Verification Engine for Student Internships
+    </div>
+    <h1 class="display-5 fw-bold text-dark mb-3" style="font-family: 'Outfit', sans-serif; letter-spacing: -1px;">
+      Detect Fake Internships & <span class="text-primary">Job Scams</span> Instantly
+    </h1>
+    <p class="lead text-muted mx-auto mb-4" style="max-width: 760px; font-size: 1.08rem;">
+      Enter any posting URL from <strong class="text-dark">Internshala</strong>, <strong class="text-dark">LinkedIn</strong>, <strong class="text-dark">Indeed</strong>, <strong class="text-dark">Foundit</strong>, or <strong class="text-dark">Wellfound</strong>.
+      Our system extracts metadata (title, dates, salary, contacts) and analyzes red-flag keywords, communication risks, and fraudulent patterns using NLP.
+    </p>
+
+    <!-- Supported Portals Bar -->
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-4">
+      <span class="text-secondary small fw-semibold me-2">Supported Portals:</span>
+      <span class="portal-badge active"><i class="fa-solid fa-graduation-cap text-primary"></i> Internshala</span>
+      <span class="portal-badge active"><i class="fa-brands fa-linkedin text-info"></i> LinkedIn</span>
+      <span class="portal-badge active"><i class="fa-solid fa-briefcase text-primary"></i> Indeed</span>
+      <span class="portal-badge active"><i class="fa-solid fa-magnifying-glass text-warning"></i> Foundit</span>
+      <span class="portal-badge active"><i class="fa-solid fa-handshake-angle text-danger"></i> Wellfound</span>
+      <span class="portal-badge active"><i class="fa-solid fa-globe text-secondary"></i> Direct Career Portals</span>
+    </div>
+
+    <!-- Main Scanner Card -->
+    <div class="card card-custom mx-auto text-start shadow-sm mb-5" style="max-width: 860px;">
+      <div class="card-header bg-white border-bottom p-3">
+        <ul class="nav nav-pills card-header-pills" id="scannerTabs" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active fw-semibold" id="url-tab" data-bs-toggle="tab" data-bs-target="#tab-url" type="button" role="tab">
+              <i class="fa-solid fa-link me-1"></i> Scan Job Portal URL
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link fw-semibold" id="demos-tab" data-bs-toggle="tab" data-bs-target="#tab-demos" type="button" role="tab">
+              <i class="fa-solid fa-flask me-1 text-warning"></i> 1-Click Showcase Samples
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link fw-semibold" id="paste-tab" data-bs-toggle="tab" data-bs-target="#tab-paste" type="button" role="tab">
+              <i class="fa-solid fa-paste me-1"></i> Manual Text Input
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card-body p-4">
+        <div class="tab-content" id="scannerTabsContent">
+          
+          <!-- TAB 1: URL Scanner -->
+          <div class="tab-pane fade show active" id="tab-url" role="tabpanel">
+            <form action="{{ url_for('analyze') }}" method="POST" id="urlForm">
+              <input type="hidden" name="mode" value="url">
+              <div class="mb-3">
+                <label for="job_url" class="form-label fw-semibold text-dark">
+                  Job or Internship Posting URL
+                </label>
+                <div class="input-group input-group-lg">
+                  <span class="input-group-text bg-light text-muted border-end-0">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                  </span>
+                  <input type="url" class="form-control border-start-0" id="job_url" name="job_url"
+                         placeholder="Paste URL (e.g. https://internshala.com/internship/detail/... or indeed.com/...)"
+                         required autocomplete="off">
+                  <button class="btn btn-primary px-4 fw-semibold d-flex align-items-center gap-2" type="submit" id="btnScanUrl">
+                    <span>Inspect Posting</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                  </button>
+                </div>
+                <div class="form-text mt-2 text-muted">
+                  <i class="fa-solid fa-circle-info text-primary me-1"></i>
+                  Automatically fetches Date, Day, Description, Salary, Contact Emails, and scans for financial red flags.
+                </div>
+              </div>
+            </form>
+
+            <!-- Quick helper chips -->
+            <div class="mt-4 pt-3 border-top">
+              <div class="small fw-semibold text-secondary mb-2">Try quick demo URLs from major portals:</div>
+              <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary demo-pill" data-url="{{ samples.internshala_genuine.url }}">
+                  <i class="fa-solid fa-graduation-cap text-primary me-1"></i> Internshala: Genuine Django Intern
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger demo-pill" data-url="{{ samples.internshala_scam.url }}">
+                  <i class="fa-solid fa-triangle-exclamation text-danger me-1"></i> Internshala: ₹1499 Fee Scam
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary demo-pill" data-url="{{ samples.linkedin_genuine.url }}">
+                  <i class="fa-brands fa-linkedin text-info me-1"></i> LinkedIn: Microsoft Genuine
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger demo-pill" data-url="{{ samples.indeed_scam.url }}">
+                  <i class="fa-solid fa-triangle-exclamation text-danger me-1"></i> Indeed: Gate Pass Fee Scam
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: 1-Click Showcase Samples -->
+          <div class="tab-pane fade" id="tab-demos" role="tabpanel">
+            <p class="text-muted small mb-3">
+              Click any of the curated test cases below to test the detection engine and view parsed metadata across different portals:
+            </p>
+            <div class="row g-3">
+              
+              <!-- Internshala Genuine -->
+              <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-primary"><i class="fa-solid fa-graduation-cap me-1"></i> Internshala</span>
+                    <span class="badge bg-success-subtle text-success border border-success"><i class="fa-solid fa-shield-check me-1"></i> Genuine</span>
+                  </div>
+                  <h6 class="fw-bold mb-1">{{ samples.internshala_genuine.title }}</h6>
+                  <p class="small text-muted mb-2">{{ samples.internshala_genuine.company }} &bull; {{ samples.internshala_genuine.salary }}</p>
+                  <a href="{{ url_for('analyze_sample', sample_key='internshala_genuine') }}" class="btn btn-sm btn-outline-primary w-100 fw-semibold">
+                    <i class="fa-solid fa-bolt me-1"></i> Run Analysis Demo
+                  </a>
+                </div>
+              </div>
+
+              <!-- Internshala Scam -->
+              <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow border-danger-subtle">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-primary"><i class="fa-solid fa-graduation-cap me-1"></i> Internshala</span>
+                    <span class="badge bg-danger-subtle text-danger border border-danger"><i class="fa-solid fa-skull-crossbones me-1"></i> Scam (₹1,499 Fee)</span>
+                  </div>
+                  <h6 class="fw-bold mb-1">{{ samples.internshala_scam.title }}</h6>
+                  <p class="small text-muted mb-2">{{ samples.internshala_scam.company }} &bull; Demands Registration Fee & Telegram</p>
+                  <a href="{{ url_for('analyze_sample', sample_key='internshala_scam') }}" class="btn btn-sm btn-danger w-100 fw-semibold">
+                    <i class="fa-solid fa-shield-virus me-1"></i> Test Scam Detection
+                  </a>
+                </div>
+              </div>
+
+              <!-- LinkedIn Genuine -->
+              <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-info text-dark"><i class="fa-brands fa-linkedin me-1"></i> LinkedIn</span>
+                    <span class="badge bg-success-subtle text-success border border-success"><i class="fa-solid fa-shield-check me-1"></i> Genuine</span>
+                  </div>
+                  <h6 class="fw-bold mb-1">{{ samples.linkedin_genuine.title }}</h6>
+                  <p class="small text-muted mb-2">{{ samples.linkedin_genuine.company }} &bull; {{ samples.linkedin_genuine.salary }}</p>
+                  <a href="{{ url_for('analyze_sample', sample_key='linkedin_genuine') }}" class="btn btn-sm btn-outline-primary w-100 fw-semibold">
+                    <i class="fa-solid fa-bolt me-1"></i> Run Analysis Demo
+                  </a>
+                </div>
+              </div>
+
+              <!-- LinkedIn Scam -->
+              <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow border-danger-subtle">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-info text-dark"><i class="fa-brands fa-linkedin me-1"></i> LinkedIn</span>
+                    <span class="badge bg-danger-subtle text-danger border border-danger"><i class="fa-solid fa-skull-crossbones me-1"></i> Scam (Task Rating)</span>
+                  </div>
+                  <h6 class="fw-bold mb-1">{{ samples.linkedin_scam.title }}</h6>
+                  <p class="small text-muted mb-2">{{ samples.linkedin_scam.company }} &bull; YouTube Like Task & Deposit Scam</p>
+                  <a href="{{ url_for('analyze_sample', sample_key='linkedin_scam') }}" class="btn btn-sm btn-danger w-100 fw-semibold">
+                    <i class="fa-solid fa-shield-virus me-1"></i> Test Scam Detection
+                  </a>
+                </div>
+              </div>
+
+              <!-- Indeed Genuine -->
+              <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-secondary"><i class="fa-solid fa-briefcase me-1"></i> Indeed</span>
+                    <span class="badge bg-success-subtle text-success border border-success"><i class="fa-solid fa-shield-check me-1"></i> Genuine</span>
+                  </div>
+                  <h6 class="fw-bold mb-1">{{ samples.indeed_genuine.title }}</h6>
+                  <p class="small text-muted mb-2">{{ samples.indeed_genuine.company }} &bull; {{ samples.indeed_genuine.salary }}</p>
+                  <a href="{{ url_for('analyze_sample', sample_key='indeed_genuine') }}" class="btn btn-sm btn-outline-primary w-100 fw-semibold">
+                    <i class="fa-solid fa-bolt me-1"></i> Run Analysis Demo
+                  </a>
+                </div>
+              </div>
+
+              <!-- Indeed Scam -->
+              <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow border-danger-subtle">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-secondary"><i class="fa-solid fa-briefcase me-1"></i> Indeed</span>
+                    <span class="badge bg-danger-subtle text-danger border border-danger"><i class="fa-solid fa-skull-crossbones me-1"></i> Scam (Courier Fee)</span>
+                  </div>
+                  <h6 class="fw-bold mb-1">{{ samples.indeed_scam.title }}</h6>
+                  <p class="small text-muted mb-2">{{ samples.indeed_scam.company }} &bull; ₹950 Gate Pass & SMS Sender Scam</p>
+                  <a href="{{ url_for('analyze_sample', sample_key='indeed_scam') }}" class="btn btn-sm btn-danger w-100 fw-semibold">
+                    <i class="fa-solid fa-shield-virus me-1"></i> Test Scam Detection
+                  </a>
+                </div>
+              </div>
+
+              <!-- Foundit Genuine -->
+              <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-magnifying-glass me-1"></i> Foundit</span>
+                    <span class="badge bg-success-subtle text-success border border-success"><i class="fa-solid fa-shield-check me-1"></i> Genuine</span>
+                  </div>
+                  <h6 class="fw-bold mb-1">{{ samples.foundit_genuine.title }}</h6>
+                  <p class="small text-muted mb-2">{{ samples.foundit_genuine.company }} &bull; {{ samples.foundit_genuine.salary }}</p>
+                  <a href="{{ url_for('analyze_sample', sample_key='foundit_genuine') }}" class="btn btn-sm btn-outline-primary w-100 fw-semibold">
+                    <i class="fa-solid fa-bolt me-1"></i> Run Analysis Demo
+                  </a>
+                </div>
+              </div>
+
+              <!-- Wellfound Genuine -->
+              <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-dark text-white"><i class="fa-solid fa-handshake-angle me-1"></i> Wellfound</span>
+                    <span class="badge bg-success-subtle text-success border border-success"><i class="fa-solid fa-shield-check me-1"></i> Genuine</span>
+                  </div>
+                  <h6 class="fw-bold mb-1">{{ samples.wellfound_genuine.title }}</h6>
+                  <p class="small text-muted mb-2">{{ samples.wellfound_genuine.company }} &bull; {{ samples.wellfound_genuine.salary }}</p>
+                  <a href="{{ url_for('analyze_sample', sample_key='wellfound_genuine') }}" class="btn btn-sm btn-outline-primary w-100 fw-semibold">
+                    <i class="fa-solid fa-bolt me-1"></i> Run Analysis Demo
+                  </a>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- TAB 3: Manual Text Input -->
+          <div class="tab-pane fade" id="tab-paste" role="tabpanel">
+            <form action="{{ url_for('analyze') }}" method="POST">
+              <input type="hidden" name="mode" value="paste">
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold text-dark">Job / Internship Title</label>
+                  <input type="text" class="form-control" name="title" placeholder="e.g. Data Science Intern / Web Developer">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold text-dark">Company Name</label>
+                  <input type="text" class="form-control" name="company" placeholder="e.g. Acme Tech Solutions">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold text-dark">Portal / Source</label>
+                  <select class="form-select" name="portal">
+                    <option value="Internshala">Internshala</option>
+                    <option value="LinkedIn">LinkedIn</option>
+                    <option value="Indeed">Indeed</option>
+                    <option value="Foundit">Foundit</option>
+                    <option value="Wellfound">Wellfound</option>
+                    <option value="Other">Direct / Other</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold text-dark">Salary / Stipend</label>
+                  <input type="text" class="form-control" name="salary" placeholder="e.g. ₹20,000 / month">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold text-dark">Location</label>
+                  <input type="text" class="form-control" name="location" placeholder="e.g. Remote / Noida / Bengaluru">
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small fw-semibold text-dark">Job Description & Requirements *</label>
+                <textarea class="form-control" name="description" rows="5" placeholder="Paste the full job description, eligibility criteria, and instructions here..." required></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small fw-semibold text-dark">Contact Information / Links (Optional)</label>
+                <input type="text" class="form-control" name="contact_info" placeholder="e.g. recruit@company.com, Telegram: @recruiter, WhatsApp link">
+              </div>
+
+              <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                <i class="fa-solid fa-magnifying-glass-chart me-1"></i> Analyze Job Posting
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature Pillars -->
+    <div class="row g-4 text-start mb-5">
+      <div class="col-md-4">
+        <div class="card card-custom p-4 h-100">
+          <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 50px; height: 50px;">
+            <i class="fa-solid fa-robot fs-5"></i>
+          </div>
+          <h5 class="fw-bold">NLP & Ensemble ML Model</h5>
+          <p class="text-muted small mb-0">
+            Trained on 2,600+ balanced samples of real-world employment postings, using TF-IDF n-grams with a soft-voting Random Forest and Logistic Regression classifier.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card card-custom p-4 h-100">
+          <div class="bg-danger bg-opacity-10 text-danger rounded-3 d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 50px; height: 50px;">
+            <i class="fa-solid fa-triangle-exclamation fs-5"></i>
+          </div>
+          <h5 class="fw-bold">Red Flag Keyword Engine</h5>
+          <p class="text-muted small mb-0">
+            Detects upfront registration charges, security fees, Telegram task groups, WhatsApp interviews, and suspicious personal webmail domains.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card card-custom p-4 h-100">
+          <div class="bg-success bg-opacity-10 text-success rounded-3 d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 50px; height: 50px;">
+            <i class="fa-solid fa-id-card-clip fs-5"></i>
+          </div>
+          <h5 class="fw-bold">Full Metadata Extraction</h5>
+          <p class="text-muted small mb-0">
+            Extracts posting dates, exact day of week, salary/stipend ranges, company profile, location, and generates printable verification certificates.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Scans Section -->
+    {% if recent_scans %}
+    <div class="text-start mt-5">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0" style="font-family: 'Outfit', sans-serif;">
+          <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Recent Verification Scans
+        </h4>
+        <a href="{{ url_for('history') }}" class="btn btn-sm btn-outline-secondary">View Full History &rarr;</a>
+      </div>
+
+      <div class="card card-custom overflow-hidden">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr class="small text-secondary">
+                <th>Role & Company</th>
+                <th>Portal</th>
+                <th>Posting Date</th>
+                <th>Salary / Stipend</th>
+                <th>Scam Score</th>
+                <th>Verdict</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for scan in recent_scans %}
+              <tr>
+                <td>
+                  <div class="fw-bold text-dark">{{ scan.title }}</div>
+                  <div class="small text-muted">{{ scan.company }}</div>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark border">{{ scan.portal }}</span>
+                </td>
+                <td>
+                  <div class="small">{{ scan.date_posted }}</div>
+                  <div class="small text-muted">{{ scan.day_posted }}</div>
+                </td>
+                <td>
+                  <span class="small font-monospace">{{ scan.salary }}</span>
+                </td>
+                <td>
+                  <div class="fw-bold {{ 'text-success' if scan.scam_score < 25 else 'text-warning' if scan.scam_score < 60 else 'text-danger' }}">
+                    {{ scan.scam_score }}%
+                  </div>
+                </td>
+                <td>
+                  <span class="badge bg-{{ scan.verdict_class }}-subtle text-{{ scan.verdict_class }} border border-{{ scan.verdict_class }}">
+                    {{ scan.verdict }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <a href="{{ url_for('view_scan', scan_id=scan.id) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fa-solid fa-eye me-1"></i> Details
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Handle quick demo pills
+  document.querySelectorAll('.demo-pill').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const url = this.getAttribute('data-url');
+      const input = document.getElementById('job_url');
+      input.value = url;
+      input.focus();
+      // Highlight effect
+      input.classList.add('border-primary');
+      setTimeout(() => input.classList.remove('border-primary'), 1000);
+    });
+  });
+
+  // Spinner on submit
+  document.getElementById('urlForm').addEventListener('submit', function() {
+    const btn = document.getElementById('btnScanUrl');
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Extracting & Scanning...`;
+    btn.disabled = true;
+  });
+</script>
+{% endblock %}

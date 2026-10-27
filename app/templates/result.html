@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Result: {{ scan.title }} | SafeHire AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <!-- Top Navigation & Action Bar -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1 small">
+          <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Scanner</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Verification Audit #{{ scan.id }}</li>
+        </ol>
+      </nav>
+      <h3 class="fw-bold text-dark mb-0" style="font-family: 'Outfit', sans-serif;">
+        Verification & Security Audit
+      </h3>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('export_report', scan_id=scan.id) }}" target="_blank" class="btn btn-outline-dark fw-semibold">
+        <i class="fa-solid fa-file-pdf me-1 text-danger"></i> Formal Audit Certificate
+      </a>
+      <a href="{{ url_for('index') }}" class="btn btn-primary fw-semibold">
+        <i class="fa-solid fa-plus me-1"></i> Scan Another
+      </a>
+    </div>
+  </div>
+
+  <!-- Primary Verdict Card -->
+  <div class="card card-custom overflow-hidden mb-4 border-0 shadow-sm">
+    <div class="p-4 verdict-banner-{{ scan.verdict_class }}">
+      <div class="row align-items-center gy-4">
+        
+        <!-- Score Circular Gauge -->
+        <div class="col-md-auto text-center text-md-start">
+          <div class="position-relative d-inline-flex align-items-center justify-content-center" style="width: 130px; height: 130px;">
+            <svg class="gauge-svg" viewBox="0 0 100 100">
+              <circle class="gauge-bg" cx="50" cy="50" r="42" />
+              <!-- Circumference = 2 * PI * 42 ~= 263.89 -->
+              <circle class="gauge-fill" cx="50" cy="50" r="42"
+                      stroke="{{ '#ef4444' if scan.scam_score > 60 else '#f59e0b' if scan.scam_score > 25 else '#10b981' }}"
+                      stroke-dasharray="263.89"
+                      stroke-dashoffset="{{ 263.89 - (263.89 * (scan.scam_score / 100)) }}" />
+            </svg>
+            <div class="position-absolute text-center text-white">
+              <span class="fs-2 fw-bold d-block lh-1">{{ scan.scam_score }}%</span>
+              <span class="small opacity-75" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Scam Risk</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Verdict Text & Summary -->
+        <div class="col-md">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <span class="badge bg-white text-{{ scan.verdict_class }} fs-6 fw-bold px-3 py-1 shadow-sm">
+              <i class="fa-solid {{ 'fa-shield-virus' if scan.verdict_class == 'danger' else 'fa-triangle-exclamation' if scan.verdict_class == 'warning' else 'fa-shield-check' }} me-1"></i>
+              {{ scan.verdict }}
+            </span>
+            <span class="badge bg-black bg-opacity-25 text-white">
+              Trust Score: {{ scan.trust_score }}%
+            </span>
+            <span class="badge bg-black bg-opacity-25 text-white">
+              Portal: {{ scan.portal }}
+            </span>
+          </div>
+
+          <h4 class="fw-bold mb-2 text-white">{{ scan.analysis.verdict_desc }}</h4>
+
+          <div class="d-flex flex-wrap gap-3 small text-white text-opacity-90">
+            <span><i class="fa-solid fa-brain me-1"></i> <strong>ML Classifier Prob:</strong> {{ scan.analysis.ml_probability }}%</span>
+            <span><i class="fa-solid fa-list-check me-1"></i> <strong>Heuristic Risk:</strong> {{ scan.analysis.heuristic_score }}%</span>
+            <span><i class="fa-solid fa-calendar me-1"></i> <strong>Audited At:</strong> {{ scan.created_at }}</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Body Grid: Left = Job Details, Right = Risk Breakdown -->
+  <div class="row g-4">
+    
+    <!-- LEFT COLUMN: Extracted Job Profile -->
+    <div class="col-lg-6">
+      
+      <!-- Extracted Metadata Card -->
+      <div class="card card-custom p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <h5 class="fw-bold text-dark mb-0">
+            <i class="fa-solid fa-file-lines text-primary me-2"></i> Extracted Job Information
+          </h5>
+          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
+            {{ scan.job_details.fetch_method }}
+          </span>
+        </div>
+
+        <div class="mb-3">
+          <div class="fs-5 fw-bold text-dark">{{ scan.title }}</div>
+          <div class="text-secondary fw-semibold">
+            <i class="fa-solid fa-building me-1"></i> {{ scan.company }}
+          </div>
+        </div>
+
+        <div class="row g-3 py-2 border-top border-bottom my-3">
+          <div class="col-6">
+            <div class="small text-muted mb-1"><i class="fa-regular fa-calendar-days text-primary me-1"></i> Posting Date</div>
+            <div class="fw-semibold text-dark">{{ scan.date_posted }}</div>
+            <div class="small text-secondary">Day: <span class="fw-medium text-dark">{{ scan.day_posted }}</span></div>
+          </div>
+          <div class="col-6">
+            <div class="small text-muted mb-1"><i class="fa-solid fa-indian-rupee-sign text-success me-1"></i> Salary / Stipend</div>
+            <div class="fw-bold text-success">{{ scan.salary }}</div>
+          </div>
+          <div class="col-6">
+            <div class="small text-muted mb-1"><i class="fa-solid fa-location-dot text-danger me-1"></i> Location</div>
+            <div class="fw-medium text-dark">{{ scan.job_details.location }}</div>
+          </div>
+          <div class="col-6">
+            <div class="small text-muted mb-1"><i class="fa-solid fa-user-graduate text-info me-1"></i> Experience</div>
+            <div class="fw-medium text-dark">{{ scan.job_details.experience }}</div>
+          </div>
+        </div>
+
+        <!-- Contact Channels Detected -->
+        <h6 class="fw-bold small text-secondary text-uppercase mb-2">Detected Channels & Contacts:</h6>
+        <div class="d-flex flex-column gap-2 mb-3">
+          {% if scan.job_details.contact_emails %}
+            <div class="d-flex align-items-center gap-2 small">
+              <span class="badge bg-light text-dark border"><i class="fa-regular fa-envelope me-1"></i> Emails:</span>
+              <span>{{ scan.job_details.contact_emails | join(', ') }}</span>
+            </div>
+          {% endif %}
+          {% if scan.job_details.phones %}
+            <div class="d-flex align-items-center gap-2 small">
+              <span class="badge bg-light text-dark border"><i class="fa-solid fa-phone me-1"></i> Phones:</span>
+              <span>{{ scan.job_details.phones | join(', ') }}</span>
+            </div>
+          {% endif %}
+          {% if scan.job_details.telegram_links %}
+            <div class="d-flex align-items-center gap-2 small">
+              <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                <i class="fa-brands fa-telegram me-1"></i> Telegram:
+              </span>
+              <span class="text-danger fw-semibold">{{ scan.job_details.telegram_links | join(', ') }}</span>
+            </div>
+          {% endif %}
+          {% if scan.job_details.whatsapp_links %}
+            <div class="d-flex align-items-center gap-2 small">
+              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp:
+              </span>
+              <span class="text-success fw-semibold">{{ scan.job_details.whatsapp_links | join(', ') }}</span>
+            </div>
+          {% endif %}
+          {% if not scan.job_details.contact_emails and not scan.job_details.phones and not scan.job_details.telegram_links and not scan.job_details.whatsapp_links %}
+            <div class="small text-muted fst-italic">No direct personal phone/telegram in description (Standard ATS / Portal apply)</div>
+          {% endif %}
+        </div>
+
+        <!-- Full Extracted Description Accordion -->
+        <div class="accordion" id="descAccordion">
+          <div class="accordion-item border rounded-3">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed py-2 px-3 small fw-semibold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#descContent">
+                <i class="fa-solid fa-align-left me-2 text-primary"></i> View Full Extracted Job Description
+              </button>
+            </h2>
+            <div id="descContent" class="accordion-collapse collapse" data-bs-parent="#descAccordion">
+              <div class="accordion-body small text-muted" style="white-space: pre-line; max-height: 280px; overflow-y: auto;">
+                {{ scan.job_details.description }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Recommendations for Candidates -->
+      <div class="card card-custom p-4">
+        <h5 class="fw-bold text-dark mb-3">
+          <i class="fa-solid fa-user-shield text-primary me-2"></i> Action Checklist for Candidates
+        </h5>
+        <div class="d-flex flex-column gap-3">
+          {% for tip in scan.analysis.safety_tips %}
+          <div class="d-flex gap-3 align-items-start">
+            <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; flex-shrink: 0;">
+              <i class="fa-solid fa-check fa-xs"></i>
+            </div>
+            <div class="small text-dark">{{ tip }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Security Analytics & Red Flags -->
+    <div class="col-lg-6">
+
+      <!-- 4-Dimension Risk Radar -->
+      <div class="card card-custom p-4 mb-4">
+        <h5 class="fw-bold text-dark mb-3">
+          <i class="fa-solid fa-chart-simple text-primary me-2"></i> Risk Assessment Dimensions
+        </h5>
+        
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small fw-semibold mb-1">
+            <span><i class="fa-solid fa-money-bill-wave text-danger me-1"></i> Financial Demands Risk (Fees/Deposits)</span>
+            <span class="{{ 'text-danger' if scan.analysis.dimension_scores.financial_risk > 30 else 'text-success' }}">{{ scan.analysis.dimension_scores.financial_risk }}%</span>
+          </div>
+          <div class="risk-meter-bar">
+            <div class="risk-meter-fill {{ 'bg-danger' if scan.analysis.dimension_scores.financial_risk > 50 else 'bg-warning' if scan.analysis.dimension_scores.financial_risk > 20 else 'bg-success' }}"
+                 style="width: {{ scan.analysis.dimension_scores.financial_risk }}%;"></div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small fw-semibold mb-1">
+            <span><i class="fa-brands fa-telegram text-primary me-1"></i> Channel Legitimacy Risk (Telegram/WhatsApp/Webmail)</span>
+            <span class="{{ 'text-danger' if scan.analysis.dimension_scores.communication_risk > 30 else 'text-success' }}">{{ scan.analysis.dimension_scores.communication_risk }}%</span>
+          </div>
+          <div class="risk-meter-bar">
+            <div class="risk-meter-fill {{ 'bg-danger' if scan.analysis.dimension_scores.communication_risk > 50 else 'bg-warning' if scan.analysis.dimension_scores.communication_risk > 20 else 'bg-success' }}"
+                 style="width: {{ scan.analysis.dimension_scores.communication_risk }}%;"></div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small fw-semibold mb-1">
+            <span><i class="fa-solid fa-list-check text-warning me-1"></i> Task & Rating Fraud Risk (YouTube/Reviews)</span>
+            <span class="{{ 'text-danger' if scan.analysis.dimension_scores.task_scam_risk > 30 else 'text-success' }}">{{ scan.analysis.dimension_scores.task_scam_risk }}%</span>
+          </div>
+          <div class="risk-meter-bar">
+            <div class="risk-meter-fill {{ 'bg-danger' if scan.analysis.dimension_scores.task_scam_risk > 50 else 'bg-warning' if scan.analysis.dimension_scores.task_scam_risk > 20 else 'bg-success' }}"
+                 style="width: {{ scan.analysis.dimension_scores.task_scam_risk }}%;"></div>
+          </div>
+        </div>
+
+        <div class="mb-2">
+          <div class="d-flex justify-content-between small fw-semibold mb-1">
+            <span><i class="fa-solid fa-bullhorn text-info me-1"></i> Urgency & Inflated Claims Risk</span>
+            <span class="{{ 'text-danger' if scan.analysis.dimension_scores.urgency_risk > 30 else 'text-success' }}">{{ scan.analysis.dimension_scores.urgency_risk }}%</span>
+          </div>
+          <div class="risk-meter-bar">
+            <div class="risk-meter-fill {{ 'bg-danger' if scan.analysis.dimension_scores.urgency_risk > 50 else 'bg-warning' if scan.analysis.dimension_scores.urgency_risk > 20 else 'bg-success' }}"
+                 style="width: {{ scan.analysis.dimension_scores.urgency_risk }}%;"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Red Flag Keywords Detected -->
+      <div class="card card-custom p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-dark mb-0">
+            <i class="fa-solid fa-flag text-danger me-2"></i> Flagged Scam Indicators
+          </h5>
+          <span class="badge bg-danger rounded-pill">{{ scan.analysis.red_flags | length }} detected</span>
+        </div>
+
+        {% if scan.analysis.red_flags %}
+          <p class="small text-muted mb-3">
+            The following patterns and keywords triggered security alerts in this posting:
+          </p>
+
+          <div class="d-flex flex-column gap-3">
+            {% for item in scan.analysis.red_flags %}
+            <div class="border rounded-3 p-3 bg-white">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="flag-pill">
+                  <i class="fa-solid fa-triangle-exclamation"></i> {{ item.keyword }}
+                </span>
+                <span class="small text-muted fw-semibold">{{ item.category }}</span>
+              </div>
+              <div class="flag-snippet">
+                {{ item.context }}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-success d-flex align-items-center gap-2 mb-0" role="alert">
+            <i class="fa-solid fa-circle-check fs-5"></i>
+            <div>
+              <div class="fw-bold">No High-Risk Scam Keywords Detected</div>
+              <div class="small">The posting text does not request upfront money, registration charges, or redirect to suspicious Telegram channels.</div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Genuine Signals Detected -->
+      <div class="card card-custom p-4">
+        <h5 class="fw-bold text-dark mb-2">
+          <i class="fa-solid fa-circle-check text-success me-2"></i> Genuine Signals Detected
+        </h5>
+        {% if scan.analysis.genuine_indicators %}
+          <p class="small text-muted mb-3">Legitimate hiring markers identified:</p>
+          <div class="d-flex flex-wrap gap-1">
+            {% for gi in scan.analysis.genuine_indicators %}
+            <span class="genuine-pill">
+              <i class="fa-solid fa-check"></i> {{ gi }}
+            </span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="small text-muted mb-0">No strong technical vetting signals detected in the short text.</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
